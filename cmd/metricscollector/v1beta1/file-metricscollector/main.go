@@ -47,7 +47,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
+        "bufio"
 	"github.com/hpcloud/tail"
 	psutil "github.com/shirou/gopsutil/process"
 	"google.golang.org/grpc"
@@ -107,9 +107,10 @@ var (
 	metricFilters        = flag.String("f", "", "Metric filters")
 	pollInterval         = flag.Duration("p", common.DefaultPollInterval, "Poll interval between running processes check")
 	timeout              = flag.Duration("timeout", common.DefaultTimeout, "Timeout before invoke error during running processes check")
-	waitAllProcesses     = flag.String("w", common.DefaultWaitAllProcesses, "Whether wait for all other main process of container exiting")
+	waitAllProcesses     = flag.String("w", "false", "Whether wait for all other main process of container exiting")
 	stopRules            stopRulesFlag
 	isEarlyStopped       = false
+	file1path             ="/var/log/metrics.log"
 )
 
 func checkMetricFile(mFile string) {
@@ -129,6 +130,30 @@ func printMetricsFile(mFile string) {
 
 	// Check that metric file exists.
 	checkMetricFile(mFile)
+        file, err := os.OpenFile(mFile, os.O_WRONLY|os.O_APPEND, 0666)
+        if err != nil {
+          klog.Fatalf("文件打开失败", err)
+        }
+    //及时关闭file句柄
+        defer file.Close()
+        write := bufio.NewWriter(file)
+	
+	
+	// Print lines from metrics file.
+	t, _ := tail.TailFile(mFile, tail.Config{Follow: true})
+	for line := range t.Lines {
+		klog.Info(line.Text)
+		//将文件内容写入新文件file1path
+		write.WriteString（line.Text）
+		
+	}
+	write.Flush()
+	//Flush将缓存的文件真正写入到文件中
+}
+func printMetrics1File(mFile string) {
+
+	// Check that metric file exists.
+	checkMetricFile(mFile)
 
 	// Print lines from metrics file.
 	t, _ := tail.TailFile(mFile, tail.Config{Follow: true})
@@ -136,6 +161,7 @@ func printMetricsFile(mFile string) {
 		klog.Info(line.Text)
 	}
 }
+
 
 func watchMetricsFile(mFile string, stopRules stopRulesFlag, filters []string) {
 
@@ -344,14 +370,17 @@ func main() {
 	if len(*metricFilters) != 0 {
 		filters = strings.Split(*metricFilters, ";")
 	}
-
+        go printMetrics1File(file1path)
 	// If stop rule is set we need to parse metrics during run.
 	if len(stopRules) != 0 {
 		go watchMetricsFile(*metricsFilePath, stopRules, filters)
 	} else {
 		go printMetricsFile(*metricsFilePath)
 	}
-
+        var metricList []string
+	metricList = strings.Split(*metricNames, ";")
+	olog, _ := filemc.CollectObservationLog(*metricsFilePath, metricList, filters)
+	klog.Infof("Metrics reported. :\n%v", olog)
 	waitAll, _ := strconv.ParseBool(*waitAllProcesses)
 
 	wopts := common.WaitPidsOpts{
@@ -383,7 +412,7 @@ func reportMetrics(filters []string) {
 	if len(*metricNames) != 0 {
 		metricList = strings.Split(*metricNames, ";")
 	}
-	olog, err := filemc.CollectObservationLog(*metricsFilePath, metricList, filters)
+	olog, err := filemc.CollectObservationLog(file1path, metricList, filters)
 	if err != nil {
 		klog.Fatalf("Failed to collect logs: %v", err)
 	}
