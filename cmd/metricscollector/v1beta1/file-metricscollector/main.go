@@ -144,8 +144,8 @@ func printMetricsFile(mFile string) {
 	for line := range t.Lines {
 		klog.Info(line.Text)
 		//将文件内容写入新文件file1path
-		write.WriteString(line.Text)
-		file.WriteString(line.Text)
+		//write.WriteString(line.Text)
+		file.WriteString(line.Text+"\r\n")
 	}
 	write.Flush()
 	//Flush将缓存的文件真正写入到文件中
@@ -376,10 +376,10 @@ func main() {
 		go watchMetricsFile(*metricsFilePath, stopRules, filters)
 	} else {
 		go printMetricsFile(*metricsFilePath)
-		var metricList []string
-	        metricList = strings.Split(*metricNames, ";")
-	        olog, _ := filemc.CollectObservationLog(*metricsFilePath, metricList, filters)
-	        klog.Infof("Metrics reported. :\n%v", olog)
+		//var metricList []string
+	        //metricList = strings.Split(*metricNames, ";")
+	        //olog, _ := filemc.CollectObservationLog(*metricsFilePath, metricList, filters)
+	       // klog.Infof("Metrics reported. :\n%v", olog)
 	}
       
 	waitAll, _ := strconv.ParseBool(*waitAllProcesses)
