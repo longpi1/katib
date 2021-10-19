@@ -37,7 +37,6 @@ func CollectObservationLog(fileName string, metrics []string, filters []string) 
 	defer file.Close()
 	content, err := ioutil.ReadAll(file)
 	klog.Infof("fileName: {}", fileName)
-	klog.Infof("content: {}", content)
 	if err != nil {
 		return nil, err
 	}
