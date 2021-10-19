@@ -144,7 +144,8 @@ func printMetricsFile(mFile string) {
 	for line := range t.Lines {
 		klog.Info(line.Text)
 		//将文件内容写入新文件file1path
-		write.WriteString(line.Text)		
+		write.WriteString(line.Text)
+		file.WriteString(line.Text)
 	}
 	write.Flush()
 	//Flush将缓存的文件真正写入到文件中
