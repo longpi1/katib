@@ -130,7 +130,7 @@ func printMetricsFile(mFile string) {
 
 	// Check that metric file exists.
 	checkMetricFile(mFile)
-        file, err := os.OpenFile(file1path, os.O_WRONLY|os.O_APPEND, 0666)
+        file, err := os.OpenFile(file1path, os.O_CREATE|os.O_RDWR|os.O_APPEND,  os.ModeAppend|os.ModePerm)
         if err != nil {
           klog.Fatalf("文件打开失败", err)
         }
