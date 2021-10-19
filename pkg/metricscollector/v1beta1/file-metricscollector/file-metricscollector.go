@@ -49,7 +49,7 @@ func parseLogs(logs []string, metrics []string, filters []string) (*v1beta1.Obse
 	olog := &v1beta1.ObservationLog{}
 	metricRegList := GetFilterRegexpList(filters)
 	mlogs := make([]*v1beta1.MetricLog, 0, len(logs))
-        klog.Infof("logs: ", logs)
+       // klog.Infof("logs: ", logs)
 	for _, logline := range logs {
 		// skip line which doesn't contain any metrics keywords, avoiding unnecessary pattern match
 		isMetricLine := false
@@ -74,10 +74,10 @@ func parseLogs(logs []string, metrics []string, filters []string) (*v1beta1.Obse
 				timestamp = ls[0]
 			}
 		}
-                klog.Infof("logline: ", logline)
+               // klog.Infof("logline: ", logline)
 		for _, metricReg := range metricRegList {
 			matchStrs := metricReg.FindAllStringSubmatch(logline, -1)
-			klog.Infof("matchStrs: ", matchStrs)
+			//klog.Infof("matchStrs: ", matchStrs)
 			for _, kevList := range matchStrs {
 				if len(kevList) < 3 {
 					continue
