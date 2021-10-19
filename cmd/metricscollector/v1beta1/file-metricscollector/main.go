@@ -130,7 +130,7 @@ func printMetricsFile(mFile string) {
 
 	// Check that metric file exists.
 	checkMetricFile(mFile)
-        file, err := os.OpenFile(mFile, os.O_WRONLY|os.O_APPEND, 0666)
+        file, err := os.OpenFile(file1path, os.O_WRONLY|os.O_APPEND, 0666)
         if err != nil {
           klog.Fatalf("文件打开失败", err)
         }
@@ -369,17 +369,18 @@ func main() {
 	if len(*metricFilters) != 0 {
 		filters = strings.Split(*metricFilters, ";")
 	}
-        go printMetrics1File(file1path)
+        // go printMetrics1File(file1path)
 	// If stop rule is set we need to parse metrics during run.
 	if len(stopRules) != 0 {
 		go watchMetricsFile(*metricsFilePath, stopRules, filters)
 	} else {
 		go printMetricsFile(*metricsFilePath)
+		var metricList []string
+	        metricList = strings.Split(*metricNames, ";")
+	        olog, _ := filemc.CollectObservationLog(*metricsFilePath, metricList, filters)
+	        klog.Infof("Metrics reported. :\n%v", olog)
 	}
-        var metricList []string
-	metricList = strings.Split(*metricNames, ";")
-	olog, _ := filemc.CollectObservationLog(*metricsFilePath, metricList, filters)
-	klog.Infof("Metrics reported. :\n%v", olog)
+      
 	waitAll, _ := strconv.ParseBool(*waitAllProcesses)
 
 	wopts := common.WaitPidsOpts{
